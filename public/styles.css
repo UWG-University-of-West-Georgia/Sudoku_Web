@@ -264,6 +264,13 @@ select {
   margin: 20px auto 0;
 }
 
+#check-board {
+  display: block;
+  min-height: 44px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+}
+
 .hint {
   margin: 12px 0;
   color: #657187;

@@ -51,3 +51,48 @@ export function isValidMove(board, row, col, value) {
   return true;
 }
 
+export function checkBoard(board, solution) {
+  if (
+    !Array.isArray(board)
+    || !Array.isArray(solution)
+    || board.length !== SIZE
+    || solution.length !== SIZE
+    || board.some((row) => !Array.isArray(row) || row.length !== SIZE)
+    || solution.some((row) => !Array.isArray(row) || row.length !== SIZE)
+  ) {
+    throw new TypeError("Both Sudoku boards must be 9 by 9 grids.");
+  }
+
+  const wrongCells = [];
+  const correctCells = [];
+  let emptyCount = 0;
+
+  for (let row = 0; row < SIZE; row += 1) {
+    for (let col = 0; col < SIZE; col += 1) {
+      const value = board[row][col];
+      const solutionValue = solution[row][col];
+      if (!Number.isInteger(value) || value < 0 || value > SIZE) {
+        throw new TypeError("Board values must be integers from 0 to 9.");
+      }
+      if (!Number.isInteger(solutionValue) || solutionValue < 1 || solutionValue > SIZE) {
+        throw new TypeError("Solution values must be integers from 1 to 9.");
+      }
+
+      if (value === 0) {
+        emptyCount += 1;
+      } else if (value === solutionValue) {
+        correctCells.push({ row, col });
+      } else {
+        wrongCells.push({ row, col });
+      }
+    }
+  }
+
+  return {
+    wrongCells,
+    correctCells,
+    emptyCount,
+    solved: emptyCount === 0 && wrongCells.length === 0,
+  };
+}
+

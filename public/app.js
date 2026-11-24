@@ -1,4 +1,4 @@
-import { parsePuzzle, SIZE } from "./sudoku.js";
+import { checkBoard, parsePuzzle, SIZE } from "./sudoku.js";
 
 const MAX_LIVES = 3;
 const boardElement = document.querySelector("#board");
@@ -9,6 +9,7 @@ const startDialog = document.querySelector("#start-dialog");
 const startForm = document.querySelector("#start-form");
 const startDifficultyElement = document.querySelector("#start-difficulty");
 const newGameButton = document.querySelector("#new-game");
+const checkBoardButton = document.querySelector("#check-board");
 const numberPad = document.querySelector("#number-pad");
 
 let game;
@@ -16,6 +17,7 @@ let selectedIndex = -1;
 let lives = MAX_LIVES;
 let gameOver = false;
 let wrongCells = new Set();
+let correctCells = new Set();
 let boardCells = [];
 
 function renderNumberPad() {
@@ -73,7 +75,7 @@ function renderBoard() {
     const value = game.values[row][col];
     const isGiven = game.givens[row][col];
     cell.classList.toggle("given", isGiven);
-    cell.classList.toggle("correct", !isGiven && value !== 0 && value === game.solution[row][col]);
+    cell.classList.toggle("correct", correctCells.has(index));
     cell.classList.toggle("selected", index === selectedIndex);
     cell.classList.toggle("wrong", wrongCells.has(index));
     cell.disabled = isGiven || gameOver;
@@ -111,25 +113,9 @@ function enterDigit(digit) {
   if (game.values[row][col] === digit) return;
 
   game.values[row][col] = digit;
-  if (digit === game.solution[row][col]) {
-    clearWrongMark(selectedIndex);
-    statusElement.textContent = "Correct!";
-    if (game.values.every((values, currentRow) =>
-      values.every((value, currentCol) => value !== 0 && value === game.solution[currentRow][currentCol]))) {
-      gameOver = true;
-      statusElement.textContent = "Congratulations, you solved the puzzle!";
-    }
-  } else {
-    wrongCells.add(selectedIndex);
-    lives -= 1;
-    updateLives();
-    if (lives === 0) {
-      gameOver = true;
-      statusElement.textContent = "Game over: you are out of lives. Start a new puzzle to play again.";
-    } else {
-      statusElement.textContent = `Incorrect answer. ${lives} ${lives === 1 ? "life" : "lives"} remaining.`;
-    }
-  }
+  clearWrongMark(selectedIndex);
+  correctCells.delete(selectedIndex);
+  statusElement.textContent = "Answer entered. Check the grid when you’re ready.";
   renderBoard();
 }
 
@@ -142,12 +128,41 @@ function clearCell() {
   game.values[row][col] = 0;
 
   clearWrongMark(selectedIndex);
+  correctCells.delete(selectedIndex);
   statusElement.textContent = "Cell cleared.";
   renderBoard();
 }
 
+function validateBoard() {
+  if (!game || gameOver) return;
+
+  const result = checkBoard(game.values, game.solution);
+  wrongCells = new Set(result.wrongCells.map(({ row, col }) => row * SIZE + col));
+  correctCells = new Set(result.correctCells.map(({ row, col }) => row * SIZE + col));
+
+  if (result.solved) {
+    gameOver = true;
+    statusElement.textContent = "Congratulations, you solved the puzzle!";
+  } else if (wrongCells.size > 0) {
+    lives -= 1;
+    updateLives();
+    if (lives === 0) {
+      gameOver = true;
+      statusElement.textContent = "Game over: you are out of lives. Start a new puzzle to play again.";
+    } else {
+      statusElement.textContent = `Incorrect answers highlighted. One life lost; ${lives} ${lives === 1 ? "life" : "lives"} remaining.`;
+    }
+  } else {
+    statusElement.textContent = `No incorrect answers. ${result.emptyCount} ${result.emptyCount === 1 ? "cell" : "cells"} remaining.`;
+  }
+
+  renderBoard();
+  checkBoardButton.disabled = gameOver;
+}
+
 async function startNewGame() {
   newGameButton.disabled = true;
+  checkBoardButton.disabled = true;
   statusElement.textContent = "Loading puzzle…";
   try {
     const response = await fetch(`/api/puzzle?difficulty=${encodeURIComponent(difficultyElement.value)}`);
@@ -165,19 +180,23 @@ async function startNewGame() {
     lives = MAX_LIVES;
     gameOver = false;
     wrongCells = new Set();
+    correctCells = new Set();
     updateLives();
     createBoard();
     renderBoard();
+    checkBoardButton.disabled = false;
     statusElement.textContent = `${difficultyElement.options[difficultyElement.selectedIndex].text} puzzle loaded.`;
   } catch (error) {
     console.error("Failed to load puzzle:", error);
     statusElement.textContent = error.message;
   } finally {
     newGameButton.disabled = false;
+    checkBoardButton.disabled = !game;
   }
 }
 
 newGameButton.addEventListener("click", startNewGame);
+checkBoardButton.addEventListener("click", validateBoard);
 startForm.addEventListener("submit", (event) => {
   event.preventDefault();
   difficultyElement.value = startDifficultyElement.value;
