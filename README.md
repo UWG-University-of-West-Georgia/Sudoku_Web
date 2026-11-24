@@ -18,7 +18,7 @@ The dataset is stored in `data/sudoku-3m.csv` using Git LFS. Once the server sta
 
 - Choose Easy, Medium, Hard, or Expert, then click **New Puzzle**.
 - Select an empty cell and enter a number using the buttons or your keyboard.
-- Click a cell to select it. Answers are checked immediately; an incorrect answer costs one life.
+- Click **Check Grid** when you are ready to validate your answers. Each incorrect check costs one life; correct answers are highlighted, and incorrect answers are marked in red.
 - **Clear** removes the number from the selected cell.
 
 Puzzles are read directly from `data/sudoku-3m.csv` through `GET /api/puzzle?difficulty=Easy`. Git LFS is configured in `.gitattributes` to track this large file.
