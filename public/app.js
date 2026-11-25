@@ -1,4 +1,4 @@
-import { checkBoard, parsePuzzle, SIZE } from "./sudoku.js";
+import { checkBoard, parsePuzzle, SIZE, toggleNote } from "./sudoku.js";
 
 const MAX_LIVES = 3;
 const boardElement = document.querySelector("#board");
@@ -9,6 +9,7 @@ const startDialog = document.querySelector("#start-dialog");
 const startForm = document.querySelector("#start-form");
 const startDifficultyElement = document.querySelector("#start-difficulty");
 const newGameButton = document.querySelector("#new-game");
+const notesModeButton = document.querySelector("#notes-mode");
 const checkBoardButton = document.querySelector("#check-board");
 const numberPad = document.querySelector("#number-pad");
 
@@ -16,6 +17,7 @@ let game;
 let selectedIndex = -1;
 let lives = MAX_LIVES;
 let gameOver = false;
+let notesMode = false;
 let wrongCells = new Set();
 let correctCells = new Set();
 let boardCells = [];
@@ -87,7 +89,20 @@ function renderBoard() {
       continue;
     }
 
-    cell.setAttribute("aria-label", `Row ${row + 1}, column ${col + 1}, empty`);
+    const notes = game.notes[index];
+    if (notes.size > 0) {
+      const noteGrid = document.createElement("span");
+      noteGrid.className = "cell-notes";
+      for (let digit = 1; digit <= SIZE; digit += 1) {
+        const note = document.createElement("span");
+        note.textContent = notes.has(digit) ? String(digit) : "";
+        noteGrid.append(note);
+      }
+      cell.append(noteGrid);
+      cell.setAttribute("aria-label", `Row ${row + 1}, column ${col + 1}, notes ${[...notes].sort().join(", ")}`);
+    } else {
+      cell.setAttribute("aria-label", `Row ${row + 1}, column ${col + 1}, empty`);
+    }
   }
 }
 
@@ -110,9 +125,24 @@ function enterDigit(digit) {
   const col = selectedIndex % SIZE;
   if (game.givens[row][col]) return;
 
+  if (notesMode) {
+    if (game.values[row][col] !== 0) {
+      statusElement.textContent = "Clear the cell before adding notes.";
+      return;
+    }
+
+    const added = toggleNote(game.notes[selectedIndex], digit);
+    statusElement.textContent = added
+      ? `Added ${digit} to this cell’s notes.`
+      : `Removed ${digit} from this cell’s notes.`;
+    renderBoard();
+    return;
+  }
+
   if (game.values[row][col] === digit) return;
 
   game.values[row][col] = digit;
+  game.notes[selectedIndex].clear();
   clearWrongMark(selectedIndex);
   correctCells.delete(selectedIndex);
   statusElement.textContent = "Answer entered. Check the grid when you’re ready.";
@@ -124,6 +154,14 @@ function clearCell() {
   const row = Math.floor(selectedIndex / SIZE);
   const col = selectedIndex % SIZE;
   if (game.givens[row][col]) return;
+
+  if (notesMode) {
+    if (game.notes[selectedIndex].size === 0) return;
+    game.notes[selectedIndex].clear();
+    statusElement.textContent = "Notes cleared.";
+    renderBoard();
+    return;
+  }
 
   game.values[row][col] = 0;
 
@@ -158,6 +196,7 @@ function validateBoard() {
 
   renderBoard();
   checkBoardButton.disabled = gameOver;
+  notesModeButton.disabled = gameOver;
 }
 
 async function startNewGame() {
@@ -175,16 +214,21 @@ async function startNewGame() {
       values: initial.map((row) => [...row]),
       givens: initial.map((row) => row.map((value) => value !== 0)),
       solution: parsePuzzle(puzzle.solution),
+      notes: Array.from({ length: SIZE * SIZE }, () => new Set()),
     };
     selectedIndex = -1;
     lives = MAX_LIVES;
     gameOver = false;
+    notesMode = false;
     wrongCells = new Set();
     correctCells = new Set();
+    notesModeButton.setAttribute("aria-pressed", "false");
+    notesModeButton.textContent = "Notes: Off";
     updateLives();
     createBoard();
     renderBoard();
     checkBoardButton.disabled = false;
+    notesModeButton.disabled = false;
     statusElement.textContent = `${difficultyElement.options[difficultyElement.selectedIndex].text} puzzle loaded.`;
   } catch (error) {
     console.error("Failed to load puzzle:", error);
@@ -192,11 +236,22 @@ async function startNewGame() {
   } finally {
     newGameButton.disabled = false;
     checkBoardButton.disabled = !game;
+    notesModeButton.disabled = !game || gameOver;
   }
 }
 
 newGameButton.addEventListener("click", startNewGame);
 checkBoardButton.addEventListener("click", validateBoard);
+notesModeButton.addEventListener("click", () => {
+  if (!game || gameOver) return;
+
+  notesMode = !notesMode;
+  notesModeButton.setAttribute("aria-pressed", String(notesMode));
+  notesModeButton.textContent = `Notes: ${notesMode ? "On" : "Off"}`;
+  statusElement.textContent = notesMode
+    ? "Notes mode on. Select an empty cell and toggle candidate numbers."
+    : "Notes mode off.";
+});
 startForm.addEventListener("submit", (event) => {
   event.preventDefault();
   difficultyElement.value = startDifficultyElement.value;

@@ -13,6 +13,20 @@ export function parsePuzzle(puzzle) {
   );
 }
 
+export function toggleNote(notes, value) {
+  if (!(notes instanceof Set) || !Number.isInteger(value) || value < 1 || value > SIZE) {
+    throw new TypeError("Notes must be a Set and the candidate must be between 1 and 9.");
+  }
+
+  if (notes.has(value)) {
+    notes.delete(value);
+    return false;
+  }
+
+  notes.add(value);
+  return true;
+}
+
 export function isValidMove(board, row, col, value) {
   if (
     !Array.isArray(board)

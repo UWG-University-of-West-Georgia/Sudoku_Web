@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { checkBoard, isValidMove, parsePuzzle } from "../public/sudoku.js";
+import { checkBoard, isValidMove, parsePuzzle, toggleNote } from "../public/sudoku.js";
 
 const solvedString = "534678912672195348198342567859761423426853791713924856961537284287419635345286179";
 const solvedGrid = parsePuzzle(solvedString);
@@ -15,6 +15,23 @@ test("parsePuzzle creates a 9 by 9 grid and treats dots as empty", () => {
 test("parsePuzzle rejects grids with an invalid length or character", () => {
   assert.throws(() => parsePuzzle("123"), TypeError);
   assert.throws(() => parsePuzzle("x".repeat(81)), TypeError);
+});
+
+test("toggleNote adds and removes candidates independently for each cell", () => {
+  const firstCellNotes = new Set();
+  const secondCellNotes = new Set();
+
+  assert.equal(toggleNote(firstCellNotes, 3), true);
+  assert.equal(toggleNote(firstCellNotes, 7), true);
+  assert.equal(toggleNote(secondCellNotes, 3), true);
+  assert.equal(toggleNote(firstCellNotes, 3), false);
+
+  assert.deepEqual([...firstCellNotes], [7]);
+  assert.deepEqual([...secondCellNotes], [3]);
+});
+
+test("toggleNote rejects invalid candidates", () => {
+  assert.throws(() => toggleNote(new Set(), 0), TypeError);
 });
 
 test("isValidMove detects row, column, and 3-by-3 conflicts", () => {
