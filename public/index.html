@@ -53,14 +53,19 @@
         <div id="board" class="board" aria-label="Sudoku grid"></div>
 
         <div class="game-controls">
-          <p class="hint">Select a cell, then choose a number or use your keyboard.</p>
+          <p class="hint">Select a cell, then enter a number. Use Notes to pencil in candidates.</p>
           <div id="number-pad" class="number-pad" aria-label="Number pad"></div>
-          <button id="check-board" class="button button-primary" type="button" disabled>
-            Check Grid
-          </button>
+          <div class="game-actions">
+            <button id="notes-mode" class="button button-secondary" type="button" aria-pressed="false" disabled>
+              Notes: Off
+            </button>
+            <button id="check-board" class="button button-primary" type="button" disabled>
+              Check Grid
+            </button>
+          </div>
         </div>
       </section>
-      <footer>Answers are checked automatically. You have three lives.</footer>
+      <footer>Check your answers when you’re ready. Notes are kept separate for each cell.</footer>
     </main>
   </body>
 </html>
