@@ -1,10 +1,13 @@
 {
   "name": "sudoku-web",
   "version": "1.0.0",
-  "description": "Projet 2 DevOps - Sudoku Web",
-  "main": "index.js",
+  "description": "DevOps Project 2 - Sudoku Web",
+  "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Tests passed successfully!\" && exit 0"
+    "start": "node src/server.js",
+    "test": "node --test",
+    "build": "node --check src/server.js && node --check src/puzzleRepository.js && node --check public/app.js && node --check public/sudoku.js"
   },
   "dependencies": {},
   "devDependencies": {}

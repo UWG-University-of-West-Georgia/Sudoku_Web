@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Sudoku — Your Move</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <dialog id="start-dialog" class="start-dialog" aria-labelledby="start-title">
+      <form id="start-form" class="start-form">
+        <p class="eyebrow">WELCOME</p>
+        <h2 id="start-title">Choose your difficulty</h2>
+        <p class="start-description">Pick a level to start your Sudoku game.</p>
+        <label for="start-difficulty">Difficulty</label>
+        <select id="start-difficulty">
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+          <option value="Expert">Expert</option>
+        </select>
+        <button class="button button-primary" type="submit">Start Game</button>
+      </form>
+    </dialog>
+
+    <main class="game-shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">PAUSE LOGIQUE</p>
+          <h1>Sudoku</h1>
+          <p class="subtitle">One cell at a time. Take your time.</p>
+        </div>
+        <div class="difficulty-control">
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Expert">Expert</option>
+          </select>
+          <button id="new-game" class="button button-secondary" type="button">New Puzzle</button>
+        </div>
+      </header>
+
+      <section class="game-card" aria-label="Sudoku game">
+        <div class="game-status">
+          <p id="status" role="status" aria-live="polite">Loading puzzle…</p>
+          <span id="lives" class="lives">Lives: — / 3</span>
+        </div>
+
+        <div id="board" class="board" aria-label="Sudoku grid"></div>
+
+        <div class="game-controls">
+          <p class="hint">Select a cell, then enter a number. Use Notes to pencil in candidates.</p>
+          <div id="number-pad" class="number-pad" aria-label="Number pad"></div>
+          <div class="game-actions">
+            <button id="notes-mode" class="button button-secondary" type="button" aria-pressed="false" disabled>
+              Notes: Off
+            </button>
+            <button id="check-board" class="button button-primary" type="button" disabled>
+              Check Grid
+            </button>
+          </div>
+        </div>
+      </section>
+      <footer>Check your answers when you’re ready. Notes are kept separate for each cell.</footer>
+    </main>
+  </body>
+</html>
